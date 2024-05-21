@@ -1,0 +1,27 @@
+[
+    {
+      "username": "AlexSmith",
+      "email": "alexsmith@example.com",
+      "birthday": "1984-11-24",
+      "favoriteMovies": ["movieId1", "movieId3"]
+    },
+    {
+      "username": "JamieDoe",
+      "email": "jamiedoe@example.com",
+      "birthday": "1975-05-30",
+      "favoriteMovies": ["movieId4", "movieId5"]
+    },
+    {
+      "username": "ChrisRivers",
+      "email": "chrisrivers@example.com",
+      "birthday": "1992-03-15",
+      "favoriteMovies": ["movieId2", "movieId6"]
+    },
+    {
+      "username": "MorganLee",
+      "email": "morganlee@example.com",
+      "birthday": "1988-07-09",
+      "favoriteMovies": ["movieId7", "movieId8"]
+    }
+  ]
+  

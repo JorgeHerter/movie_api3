@@ -1,13 +1,13 @@
+
 // index.js
 
 const express = require('express');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
-//const uuid = require('uuid');
 const passport = require('passport');
 const { Movie, User } = require('./models');
 const auth = require('./auth');
-//const { check, validationResult } = require('express-validator');
+const { check, validationResult } = require('express-validator');
 const app = express();
 
 app.use(express.json());
@@ -30,7 +30,6 @@ const connectToDatabase = async () => {
 
 connectToDatabase();
 
-
 //CREATE
 //Add a user
 app.post('/userDB', [
@@ -44,35 +43,27 @@ app.post('/userDB', [
     if (!errors.isEmpty()) {
       return res.status(422).json({ errors: errors.array() });
     }
-    let hashedPassword = Users.hashPassword(req.body.Password);
-    await Users.findOne({ Username: req.body.Username })
-        .then((user) => {
-            if (user) {
-                return res.status(400).send(req.body.Username + ' already exists');
-            } else {
-                Users
-                    .create({
-                        Username: req.body.Username,
-                        Password: hashedPassword,
-                        Email: req.body.Email,
-                        Birthday: req.body.Birthday
-                    })
-                    .then((user) => { res.status(201).json(user) })
-                    .catch((error) => {
-                        console.error(error);
-                        res.status(500).send('Error: ' + error);
-                    })
-            }
-        })
-        .catch((error) => {
-            console.error(error);
-            res.status(500).send('Error: ' + error);
-        });
+    let hashedPassword = User.hashPassword(req.body.Password);
+    let user = await User.findOne({ Username: req.body.Username });
+    if (user) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+    user = new User({
+      Username: req.body.Username,
+      Password: hashedPassword,
+      Email: req.body.Email
+    });
+    try {
+      await user.save();
+      res.status(201).json({ message: "User created successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error occurred while creating user", error });
+    }
 });
 
 // UPDATE
 // A user's info, by username
-app.put('./userDB/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
+app.put('/userDB/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
     //CONDITION TO CHECK ADDED HERE
     if (req.user.Username !== req.params.Username) {
         return res.status(400).send('Permission denied');
@@ -100,7 +91,7 @@ app.put('./userDB/:Username', passport.authenticate('jwt', { session: false }), 
 
 // UPDATE
 // Add a movie to a user's list of favorites
-app.patch('./userDB/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), async (req, res) => {
+app.patch('/userDB/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), async (req, res) => {
     await Users.findOneAndUpdate({ Username: req.params.Username }, {
         $push: { FavoriteMovies: req.params.MovieID }
     },
@@ -117,7 +108,7 @@ app.patch('./userDB/:Username/movies/:MovieID', passport.authenticate('jwt', { s
 
 // DELETE
 // Delete a movie from a user's list of favorites
-app.delete('./userDB/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), async (req, res) => {
+app.delete('/userDB/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), async (req, res) => {
     await Users.findOneAndUpdate({ Username: req.params.Username }, {
         $pull: { FavoriteMovies: req.params.MovieID }
     },
@@ -133,7 +124,7 @@ app.delete('./userDB/:Username/movies/:MovieID', passport.authenticate('jwt', { 
 
 // DELETE
 // Delete a user by username
-app.delete('./userDB/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
+app.delete('/userDB/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
 
     await Users.findOneAndDelete({ Username: req.params.Username })
         .then((user) => {
@@ -215,7 +206,7 @@ app.get('/movies/directors/:directorName', passport.authenticate('jwt', { sessio
 });
 
 //READ
-app.get('./userDB', passport.authenticate('jwt', { session: false }), async (req, res) => {
+app.get('/userDB', passport.authenticate('jwt', { session: false }), async (req, res) => {
     await Users.find()
         .then((users) => {
             res.status(201).json(users);
@@ -227,7 +218,7 @@ app.get('./userDB', passport.authenticate('jwt', { session: false }), async (req
 });
 
 //READ
-app.get('./userDB/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
+app.get('/userDB/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
     await Users.findOne({ Username: req.params.Username })
         .then((user) => {
             res.json(user);
@@ -239,7 +230,7 @@ app.get('./userDB/:Username', passport.authenticate('jwt', { session: false }), 
 });
 
 // Endpoint to list all movies
-/*app.get('/movies', async (req, res) => {
+app.get('/movies', async (req, res) => {
     res.send('Successful GET request returning data on all the movies');
   });
   
@@ -261,7 +252,7 @@ app.get('./userDB/:Username', passport.authenticate('jwt', { session: false }), 
   // Endpoint to delete a movie
   app.delete('/movies/:movieTitle', passport.authenticate('jwt', { session: false }), async (req, res) => {
     res.send('Successful DELETE request deleting a movie');
-  });*/
+  });
   
   const PORT = 8080;
   
@@ -274,3 +265,5 @@ app.get('./userDB/:Username', passport.authenticate('jwt', { session: false }), 
   /*app.listen(3000, () => {
     console.log('Server is running on port 3000');
   });*/
+
+  

@@ -297,27 +297,16 @@ app.get('/users/:Username', passport.authenticate('jwt', { session: false }), as
     }
 });
 
-/*app.get('/users/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    let user = await User.findOne({ username: req.params.Username })
-    console.log(user);
-        then((user) => {
-            res.json(user);
-        })
-        .catch((err) => {
-            console.error(err);
-            res.status(500).send('Error: ' + err);
-        });
-});*/
 
-/*const port = process.env.PORT || 8080;
+const port = process.env.PORT || 8080;
 app.listen(port, '0.0.0.0',() => {
  console.log('Listening on Port ' + port);
-});?*/
+});
   
-  const PORT = 8080;
+  /*const PORT = 8080;
   
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-  });
+  });*/
   
   

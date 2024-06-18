@@ -308,6 +308,11 @@ app.get('/users/:Username', passport.authenticate('jwt', { session: false }), as
             res.status(500).send('Error: ' + err);
         });
 });*/
+
+/*const port = process.env.PORT || 8080;
+app.listen(port, '0.0.0.0',() => {
+ console.log('Listening on Port ' + port);
+});?*/
   
   const PORT = 8080;
   

@@ -1,0 +1,172 @@
+[
+  {
+     "_id":{
+        "$oid":"665282d67980eefbca3345c3"
+     },
+     "movieId":"movieId1",
+     "title":"Inception",
+     "releaseYear":2010,
+     "genre":{
+        "name":"Sci-Fi",
+        "description":"Science Fiction"
+     },
+     "director":{
+        "name":"Christopher Nolan",
+        "birthYear":1970
+     },
+     "featured":true
+  },
+  {
+     "_id":{
+        "$oid":"665282d67980eefbca3345c4"
+     },
+     "movieId":"movieId2",
+     "title":"The Dark Knight",
+     "releaseYear":2008,
+     "genre":{
+        "name":"Action",
+        "description":"Action Movie"
+     },
+     "director":{
+        "name":"Christopher Nolan",
+        "birthYear":1970
+     },
+     "featured":true
+  },
+  {
+     "_id":{
+        "$oid":"665282d67980eefbca3345c5"
+     },
+     "movieId":"movieId3",
+     "title":"Interstellar",
+     "releaseYear":2014,
+     "genre":{
+        "name":"Sci-Fi",
+        "description":"Space Exploration"
+     },
+     "director":{
+        "name":"Christopher Nolan",
+        "birthYear":1970
+     },
+     "featured":false
+  },
+  {
+     "_id":{
+        "$oid":"665282d67980eefbca3345c6"
+     },
+     "movieId":"movieId4",
+     "title":"Mad Max: Fury Road",
+     "releaseYear":2015,
+     "genre":{
+        "name":"Action",
+        "description":"Post-Apocalyptic Action"
+     },
+     "director":{
+        "name":"George Miller",
+        "birthYear":1945
+     },
+     "featured":true
+  },
+  {
+     "_id":{
+        "$oid":"665282d67980eefbca3345c7"
+     },
+     "movieId":"movieId5",
+     "title":"Blade Runner 2049",
+     "releaseYear":2017,
+     "genre":{
+        "name":"Sci-Fi",
+        "description":"Cyberpunk"
+     },
+     "director":{
+        "name":"Denis Villeneuve",
+        "birthYear":1967
+     },
+     "featured":false
+  },
+  {
+     "_id":{
+        "$oid":"665282d67980eefbca3345c8"
+     },
+     "movieId":"movieId6",
+     "title":"Dunkirk",
+     "releaseYear":2017,
+     "genre":{
+        "name":"War",
+        "description":"World War II"
+     },
+     "director":{
+        "name":"Christopher Nolan",
+        "birthYear":1970
+     },
+     "featured":false
+  },
+  {
+     "_id":{
+        "$oid":"665282d67980eefbca3345c9"
+     },
+     "movieId":"movieId7",
+     "title":"The Matrix",
+     "releaseYear":1999,
+     "genre":{
+        "name":"Sci-Fi",
+        "description":"Cyberpunk"
+     },
+     "director":{
+        "name":"The Wachowskis",
+        "birthYear":1965
+     },
+     "featured":true
+  },
+  {
+     "_id":{
+        "$oid":"665282d67980eefbca3345ca"
+     },
+     "movieId":"movieId8",
+     "title":"John Wick",
+     "releaseYear":2014,
+     "genre":{
+        "name":"Action",
+        "description":"Action Thriller"
+     },
+     "director":{
+        "name":"Chad Stahelski",
+        "birthYear":1968
+     },
+     "featured":false
+  },
+  {
+     "_id":{
+        "$oid":"665282d67980eefbca3345cb"
+     },
+     "movieId":"movieId9",
+     "title":"Arrival",
+     "releaseYear":2016,
+     "genre":{
+        "name":"Sci-Fi",
+        "description":"Alien Invasion"
+     },
+     "director":{
+        "name":"Denis Villeneuve",
+        "birthYear":1967
+     },
+     "featured":true
+  },
+  {
+     "_id":{
+        "$oid":"665282d67980eefbca3345cc"
+     },
+     "movieId":"movieId10",
+     "title":"Gravity",
+     "releaseYear":2013,
+     "genre":{
+        "name":"Sci-Fi",
+        "description":"Space Survival"
+     },
+     "director":{
+        "name":"Alfonso Cuarón",
+        "birthYear":1961
+     },
+     "featured":false
+  }
+]

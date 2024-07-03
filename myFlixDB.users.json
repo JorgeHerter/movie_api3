@@ -1,0 +1,87 @@
+[{
+  "_id": {
+    "$oid": "665283087980eefbca3345d0"
+  },
+  "username": "AlexSmith",
+  "email": "alexsmith@example.com",
+  "birthday": "1984-11-24",
+  "favoriteMovies": [
+    "movieId1",
+    "movieId3"
+  ]
+},
+{
+  "_id": {
+    "$oid": "665283087980eefbca3345d1"
+  },
+  "username": "JamieDoe",
+  "email": "jamiedoe@example.com",
+  "birthday": "1975-05-30",
+  "favoriteMovies": [
+    "movieId4",
+    "movieId5"
+  ]
+},
+{
+  "_id": {
+    "$oid": "665283087980eefbca3345d2"
+  },
+  "username": "ChrisRivers",
+  "email": "chrisrivers@example.com",
+  "birthday": "1992-03-15",
+  "favoriteMovies": [
+    "movieId2",
+    "movieId6"
+  ]
+},
+{
+  "_id": {
+    "$oid": "665283087980eefbca3345d3"
+  },
+  "username": "MorganLee",
+  "email": "morganlee@example.com",
+  "birthday": "1988-07-09",
+  "favoriteMovies": [
+    "movieId7",
+    "movieId8"
+  ]
+},
+{
+  "_id": {
+    "$oid": "665a9d6a62392b8e4c09b708"
+  },
+  "username": "Exampleuser",
+  "password": "Examplepass",
+  "email": "Example@email.com",
+  "dateOfBirth": {
+    "$date": "1981-09-17T06:00:00.000Z"
+  },
+  "favorites": [],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "665aa1364fcba3939d9bbc06"
+  },
+  "username": "Exampleuser2",
+  "password": "Examplepass2",
+  "email": "Example2@email.com",
+  "dateOfBirth": {
+    "$date": "1983-09-17T06:00:00.000Z"
+  },
+  "favorites": [],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "666e1397b4e6b71e1066c04e"
+  },
+  "username": "JorgeHerter",
+  "password": "Cabron",
+  "email": "jorgeherter@gmail.com",
+  "dateOfBirth": {
+    "$date": "1984-06-07T00:00:00.000Z"
+  },
+  "favorites": [],
+  "__v": 0
+}]

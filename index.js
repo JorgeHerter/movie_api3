@@ -313,7 +313,7 @@ app.get('/users/:Username', passport.authenticate('jwt', { session: false }), as
 });
 
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3000;
 app.listen(port, '0.0.0.0',() => {
  console.log('Listening on Port ' + port);
 });

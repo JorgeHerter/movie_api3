@@ -297,11 +297,30 @@ app.get('/users/:Username', passport.authenticate('jwt', { session: false }), as
     }
 });
 
+<<<<<<< HEAD
 
 const port = process.env.PORT || 8080;
 app.listen(port, '0.0.0.0',() => {
  console.log('Listening on Port ' + port);
 });
+=======
+/*app.get('/users/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    let user = await User.findOne({ username: req.params.Username })
+    console.log(user);
+        then((user) => {
+            res.json(user);
+        })
+        .catch((err) => {
+            console.error(err);
+            res.status(500).send('Error: ' + err);
+        });
+});*/
+
+/*const port = process.env.PORT || 8080;
+app.listen(port, '0.0.0.0',() => {
+ console.log('Listening on Port ' + port);
+});?*/
+>>>>>>> 563271f (Add files via upload)
   
   /*const PORT = 8080;
   

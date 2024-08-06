@@ -1,5 +1,6 @@
 
 // index.js
+require('dotenv').config();
 
 const express = require('express');
 const morgan = require('morgan');
@@ -40,6 +41,20 @@ app.use(cors({
 //module.exports = authenticateJwt;
 
 const connectToDatabase = async () => {
+    try {
+      await mongoose.connect(process.env.MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+      });
+      console.log('Connected to MongoDB');
+    } catch (error) {
+      console.error('Error connecting to MongoDB:', error);
+    }
+  }
+  
+  connectToDatabase();
+
+/*const connectToDatabase = async () => {
   try {
     await mongoose.connect('mongodb://127.0.0.1:27017/myFlixDB', {
       useNewUrlParser: true,
@@ -51,7 +66,7 @@ const connectToDatabase = async () => {
   }
 }
 
-connectToDatabase();
+connectToDatabase();*/
 
 //CREATE
 //Add a user
@@ -298,6 +313,7 @@ app.get('/users/:Username', passport.authenticate('jwt', { session: false }), as
 });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 const port = process.env.PORT || 8080;
 app.listen(port, '0.0.0.0',() => {
@@ -315,12 +331,18 @@ app.listen(port, '0.0.0.0',() => {
             res.status(500).send('Error: ' + err);
         });
 });*/
+=======
+>>>>>>> 6e7386b434216c1efc5e51ec7b78658080636787
 
-/*const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3000;
 app.listen(port, '0.0.0.0',() => {
  console.log('Listening on Port ' + port);
+<<<<<<< HEAD
 });?*/
 >>>>>>> 563271f (Add files via upload)
+=======
+});
+>>>>>>> 6e7386b434216c1efc5e51ec7b78658080636787
   
   /*const PORT = 8080;
   

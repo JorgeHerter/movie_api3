@@ -1,11 +1,14 @@
 
 // index.js
+require('dotenv').config();
 
 const express = require('express');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
+const { ObjectId } = mongoose.Types; // Import ObjectId from mongoose
 const { Movie, User } = require('./models');
 const { check, validationResult } = require('express-validator');
+const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 const authRouter = require('./auth');
 const app = express();
@@ -40,128 +43,208 @@ app.use(cors({
 //module.exports = authenticateJwt;
 
 const connectToDatabase = async () => {
-  try {
-    await mongoose.connect('mongodb://127.0.0.1:27017/myFlixDB', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
-    console.log('Connected to MongoDB');
-  } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
-  }
-}
+    try {
+        await mongoose.connect(process.env.MONGODB_URI);
+        console.log('Connected to MongoDB');
+    } catch (error) {
+        console.error('Error connecting to MongoDB:', error);
+    }
+};
 
 connectToDatabase();
 
 //CREATE
 //Add a user
 app.post('/users', [
-    // Validation logic here for request
+    // Validation middleware
     check('username', 'Username is required with at least 5 characters').isLength({ min: 5 }),
-    check('username', 'Username contains non alphanumeric characters - not allowed.').isAlphanumeric(),
-    check('dateOfBirth', 'dateOfBirth is required').not().isEmpty(),
-    check('password', 'password is required').not().isEmpty(),
-    check('password', 'Password contains non alphanumeric characters - not allowed.').isAlphanumeric(),
+    check('username', 'Username contains non-alphanumeric characters - not allowed.').isAlphanumeric(),
+    check('email', 'Email does not appear to be valid').isEmail(),
+    check('dateOfBirth', 'Date of Birth is required').not().isEmpty(),
+    check('password', 'Password is required').not().isEmpty(),
     check('password', 'Password must include at least one uppercase letter and one number.')
-    .matches(/^(?=.*[A-Z])(?=.*\d)/),
-    check('email', 'email does not appear to be valid').isEmail()
+        .matches(/^(?=.*[A-Z])(?=.*\d)/)
 ], async (req, res) => {
-    console.log(req.body);
-    // check the validation object for errors
-    let errors = validationResult(req);
-    console.log(errors, req.body);
+    console.log('Request Body:', req.body); // Log the entire request body
 
+    // Check for validation errors
+    const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(422).json({ errors: errors.array() });
+        console.log('Validation Errors:', errors.array()); // Log validation errors
+        return res.status(422).json({ errors: errors.array() });
     }
-    //let hashedPassword = User.hashedPassword(req.body.Password);
-    let hashedPassword = req.body.password;
-    let user = await User.findOne({ username: req.body.username });
-    console.log(user);
-    if (user) {
-      return res.status(400).json({ message: "User already exists" });
-    }
-    user = new User({
-      username: req.body.username,
-      password: hashedPassword,
-      dateOfBirth: req.body.dateOfBirth,
-      email: req.body.email
+
+    console.log('Validation passed, proceeding to create user.');
+
+    // Hash the password
+    const hashedPassword = User.hashPassword(req.body.password);
+    console.log('Hashed Password:', hashedPassword); // Log the hashed password
+
+    // Create a new user instance
+    const newUser = new User({
+        username: req.body.username,
+        password: hashedPassword,
+        email: req.body.email,
+        dateOfBirth: req.body.dateOfBirth
     });
+
     try {
-      await user.save();
-      res.status(201).json({ message: "User created successfully" });
+        // Save the new user to the database
+        const savedUser = await newUser.save();
+        console.log('User saved successfully:', savedUser); // Log the saved user
+        res.status(201).json({ message: "User created successfully", user: savedUser });
     } catch (error) {
-      res.status(500).json({ message: "Error occurred while creating user", error });
-   
+        console.error('Error occurred while saving user:', error); // Log the error
+        res.status(500).json({ message: "Error occurred while creating user", error });
     }
 });
+
 
 
 // UPDATE
 // A user's info, by username
-app.put('/users/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    //CONDITION TO CHECK ADDED HERE
-    if (req.user.Username !== req.params.Username) {
-        return res.status(400).send('Permission denied');
-    }
-    // CONDITION ENDS
-    await User.findOneAndUpdate({ Username: req.params.Username }, {
-        $set:
-        {
-            Username: req.body.Username,
-            Password: req.body.Password,
-            Email: req.body.Email,
-            Birthday: req.body.Birthday
-        }
-    },
-        { new: true }) // This line makes sure that the updated document is returned
-        .then((updatedUser) => {
-            res.json(updatedUser);
-        })
-        .catch((err) => {
-            console.error(err);
-            res.status(500).send('Error: ' + err);
-        })
+//passport.authenticate('jwt', { session: false }),
+app.put('/users/:Username', async (req, res) => {
+    console.log('Requested Username:', req.params.Username);
+    console.log('Request Body:', req.body);
 
+    try {
+        const regex = new RegExp(`^${req.params.Username}$`, 'i');
+        console.log('Searching for user with regex:', regex);
+
+        // Check if the user exists
+        const user = await User.findOne({ username: { $regex: regex } });
+        console.log('Looking for user:', req.params.Username);
+
+        if (!user) {
+            console.log('User not found');
+            return res.status(404).send('User not found');
+        }
+
+        console.log('Found User:', user);
+
+        // Update user details
+        const updatedUser = await User.findOneAndUpdate(
+            { _id: user._id }, // Use the found user's _id
+            {
+                username: req.body.username || user.username,
+                password: User.hashPassword(req.body.password),
+                email: req.body.email || user.email,
+                dateOfBirth: req.body.dateOfBirth || user.dateOfBirth
+            },
+            { new: true }
+        );
+
+        console.log('Updated User:', updatedUser);
+        res.json(updatedUser);
+    } catch (err) {
+        console.error('Error occurred:', err);
+        return res.status(500).send('Error: ' + err.message);
+    }
 });
 
-  
+
+
 // UPDATE
 // Add a movie to a user's list of favorites
-app.patch('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    await User.findOneAndUpdate({ Username: req.params.Username }, {
-        $push: { FavoriteMovies: req.params.MovieID }
-    },
-        { new: true }) // This line makes sure that the updated document is returned
-        .then((updatedUser) => {
-            res.json(updatedUser);
-        })
-        .catch((err) => {
-            console.error(err);
-            res.status(500).send('Error: ' + err);
+//passport.authenticate('jwt', { session: false }),
+app.patch('/users/:Username/movies/:MovieID', async (req, res) => {
+    console.log('Username:', req.params.Username);
+    console.log('MovieID:', req.params.MovieID);
+    
+    try {
+        // Find the user with a case-insensitive username
+        const user = await User.findOne({
+            username: { $regex: new RegExp(`^${req.params.Username}$`, 'i') }
         });
+
+        // Check if the user was found
+        if (!user) {
+            console.log('User not found');
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Log the current favorite movies before the update
+        const currentFavoriteMovies = user.favoriteMovies.map(movie => movie.toString());
+        console.log('Current Favorite Movies:', currentFavoriteMovies);
+
+        // Update the user's favoriteMovies array, adding MovieID if it's not already there
+        const updatedUser = await User.findOneAndUpdate(
+            { username: { $regex: new RegExp(`^${req.params.Username}$`, 'i') } },
+            { $addToSet: { favoriteMovies: req.params.MovieID } }, // Prevent duplicates
+            { new: true } // Return the updated document
+        );
+
+        // Log the updated user's favorite movies
+        if (updatedUser) {
+            const updatedFavoriteMovies = updatedUser.favoriteMovies.map(movie => movie.toString());
+            console.log('Updated Favorite Movies:', updatedFavoriteMovies);
+            return res.json(updatedFavoriteMovies);
+        } else {
+            console.log('User not updated');
+            return res.status(404).json({ message: 'User not found or no changes made' });
+        }
+    } catch (err) {
+        console.error('Error occurred:', err);
+        return res.status(500).json({ message: 'Error: ' + err.message });
+    }
 });
 
 
 // DELETE
 // Delete a movie from a user's list of favorites
-app.delete('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    await User.findOneAndUpdate({ Username: req.params.Username }, {
-        $pull: { FavoriteMovies: req.params.MovieID }
-    },
-        { new: true }) // This line makes sure that the updated document is returned
-        .then((updatedUser) => {
-            res.json(updatedUser);
-        })
-        .catch((err) => {
-            console.error(err);
-            res.status(500).send('Error: ' + err);
+//passport.authenticate('jwt', { session: false }),
+app.delete('/users/:Username/movies/:MovieID', async (req, res) => {
+    console.log('Username:', req.params.Username);
+    console.log('MovieID:', req.params.MovieID);
+
+    try {
+        // Find the user with a case-insensitive username
+        const user = await User.findOne({
+            username: { $regex: new RegExp(`^${req.params.Username}$`, 'i') }
         });
+
+        // Check if the user was found
+        if (!user) {
+            console.log('User not found');
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Log current favorite movies before deletion
+        console.log('Current Favorite Movies before deletion:', user.favoriteMovies);
+
+        // Check if MovieID is a valid ObjectId
+        let movieIdToDelete;
+        try {
+            movieIdToDelete = new mongoose.Types.ObjectId(req.params.MovieID);
+        } catch (err) {
+            console.log('Invalid ObjectId format, treating as string:', req.params.MovieID);
+            movieIdToDelete = req.params.MovieID; // Treat as a string if invalid
+        }
+
+        // Update the user's favoriteMovies array, pulling MovieID
+        const updatedUser = await User.findOneAndUpdate(
+            { username: { $regex: new RegExp(`^${req.params.Username}$`, 'i') } },
+            { $pull: { favoriteMovies: movieIdToDelete } }, // Remove MovieID from FavoriteMovies
+            { new: true } // Return the updated document
+        );
+
+        // Log the updated user's favorite movies
+        if (updatedUser) {
+            console.log('Updated Favorite Movies after deletion:', updatedUser.favoriteMovies);
+            return res.json(updatedUser.favoriteMovies);
+        } else {
+            console.log('User not updated or MovieID not found');
+            return res.status(404).json({ message: 'User not found or MovieID not in favorites' });
+        }
+    } catch (err) {
+        console.error('Error occurred:', err);
+        return res.status(500).json({ message: 'Error: ' + err.message });
+    }
 });
-
-
 //was able to delete user by username
-app.delete('/users/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
+// passport.authenticate('jwt', { session: false }),
+app.delete('/users/:Username', async (req, res) => {
     const username = req.params.Username;
     try {
         // Use a case-insensitive regular expression for the username search
@@ -179,12 +262,13 @@ app.delete('/users/:Username', passport.authenticate('jwt', { session: false }),
 
 
 // READ
-app.get('/', passport.authenticate('jwt', { session: false }), async (req, res) => {
+app.get('/', async (req, res) => {
     res.send('Welcome to myFlix!');
 });
 
 // READ
-app.get('/movies', passport.authenticate('jwt', { session: false }), async (req, res) => {
+//passport.authenticate('jwt', { session: false }),
+app.get('/movies', async (req, res) => {
     try {
         const movies = await Movie.find();
         res.status(200).json(movies);
@@ -206,7 +290,8 @@ app.get('/movies', passport.authenticate('jwt', { session: false }), async (req,
         });
 });*/
 //This code does not return movie by title
-app.get('/movies/:title', passport.authenticate('jwt', { session: false }), async (req, res) => {
+//passport.authenticate('jwt', { session: false }),
+app.get('/movies/:title', async (req, res) => {
     const title = req.params.title;
     try {
         const movie = await Movie.findOne({ title: { $regex: new RegExp(title, "i") } });
@@ -221,9 +306,9 @@ app.get('/movies/:title', passport.authenticate('jwt', { session: false }), asyn
 });
 
 
-
-app.get('/movies/genre/:genreName', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    
+// passport.authenticate('jwt', { session: false }),
+app.get('/movies/genre/:genreName', async (req, res) => {
+    console.log('error getting genre', req.params);
     const genre = req.params.genreName;
     try {
         
@@ -243,8 +328,9 @@ app.get('/movies/genre/:genreName', passport.authenticate('jwt', { session: fals
 });
 
 // READ
-app.get('/movies/directors/:directorName', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    
+//passport.authenticate('jwt', { session: false }), 
+app.get('/movies/director/:directorName', async (req, res) => {
+    console.log('error getting director', req.params);
     const director = req.params.directorName;
     try {
        
@@ -255,6 +341,7 @@ app.get('/movies/directors/:directorName', passport.authenticate('jwt', { sessio
             res.status(200).json({ movies });
         } else {
             res.status(404).send('No such director');
+            
         }
     } catch (err) {
         console.error(err);
@@ -263,7 +350,7 @@ app.get('/movies/directors/:directorName', passport.authenticate('jwt', { sessio
 });
 
 // READ
-app.get('/movies/directors/:directorName', passport.authenticate('jwt', { session: false }), async (req, res) => {
+/*app.get('/movies/directors/:directorName', passport.authenticate('jwt', { session: false }), async (req, res) => {
     
     const director = req.params.directorName;
     try {
@@ -280,7 +367,7 @@ app.get('/movies/directors/:directorName', passport.authenticate('jwt', { sessio
         console.error(err);
         res.status(500).send('Error: ' + err);
     }
-});
+});*/
 
 
 //READ
@@ -297,7 +384,8 @@ app.get('/users', async (req, res) => {
 });
 
 //READ
-app.get('/users/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
+//passport.authenticate('jwt', { session: false }),
+app.get('/users/:Username', async (req, res) => {
     try {
         let user = await User.findOne({ username: req.params.Username });
         console.log(user);

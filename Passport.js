@@ -1,4 +1,4 @@
-const passport = require('passport'),
+/*const passport = require('passport'),
     LocalStrategy = require('passport-local').Strategy,
     Models = require('./models.js'),
     passportJWT = require('passport-jwt');
@@ -51,6 +51,54 @@ passport.use(new JWTStrategy({
     .catch((error) => {
         return callback(error)
     });
+}));*/
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const Models = require('./models.js');
+const passportJWT = require('passport-jwt');
+const bcrypt = require('bcrypt');
+
+const Users = Models.User;
+const JWTStrategy = passportJWT.Strategy;
+const ExtractJWT = passportJWT.ExtractJwt;
+
+passport.use(
+  new LocalStrategy(
+    {
+      usernameField: 'Username',
+      passwordField: 'Password',
+    },
+    async (username, password, callback) => {
+      try {
+        const user = await Users.findOne({ Username: username });
+        if (!user) {
+          return callback(null, false, { message: 'Incorrect username or password.' });
+        }
+
+        const match = await bcrypt.compare(password, user.Password);
+        if (!match) {
+          return callback(null, false, { message: 'Incorrect username or password.' });
+        }
+
+        return callback(null, user);
+      } catch (error) {
+        console.error(error);
+        return callback(error);
+      }
+    }
+  )
+);
+
+passport.use(new JWTStrategy({
+  jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+  secretOrKey: process.env.JWT_SECRET || 'default_jwt_secret'
+}, async (jwtPayload, callback) => {
+  try {
+    const user = await Users.findById(jwtPayload._id);
+    return callback(null, user);
+  } catch (error) {
+    return callback(error);
+  }
 }));
 
 

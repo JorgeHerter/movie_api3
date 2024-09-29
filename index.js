@@ -12,6 +12,7 @@ const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 const authRouter = require('./auth');
 const app = express();
+//passport athenticate
 //const expressJwt = require('express-jwt');
 //const authenticateJwt = expressJwt({ secret: 'a1b2c3d4e5f6',});
 
@@ -104,38 +105,36 @@ app.post('/users', [
 // UPDATE
 // A user's info, by username
 //passport.authenticate('jwt', { session: false }),
-app.put('/users/:Username', async (req, res) => {
-    console.log('Requested Username:', req.params.Username);
-    console.log('Request Body:', req.body);
+
+app.put('/users/:Username',  async (req, res) => {
+    const requestedUsername = req.params.Username;
+    const newUsername = req.body.username;
 
     try {
-        const regex = new RegExp(`^${req.params.Username}$`, 'i');
-        console.log('Searching for user with regex:', regex);
-
-        // Check if the user exists
-        const user = await User.findOne({ username: { $regex: regex } });
-        console.log('Looking for user:', req.params.Username);
-
-        if (!user) {
-            console.log('User not found');
-            return res.status(404).send('User not found');
+        // Check if the new username already exists
+        if (newUsername) {
+            const existingUser = await User.findOne({ username: newUsername });
+            if (existingUser && existingUser.username !== requestedUsername) {
+                return res.status(400).json({ message: 'Username already taken' });
+            }
         }
 
-        console.log('Found User:', user);
-
-        // Update user details
+        // Proceed with the update if the username is unique or unchanged
         const updatedUser = await User.findOneAndUpdate(
-            { _id: user._id }, // Use the found user's _id
+            { username: requestedUsername },
             {
-                username: req.body.username || user.username,
-                password: User.hashPassword(req.body.password),
-                email: req.body.email || user.email,
-                dateOfBirth: req.body.dateOfBirth || user.dateOfBirth
+                username: newUsername || requestedUsername, // Keep the old username if no new one provided
+                password: req.body.password ? User.hashPassword(req.body.password) : undefined, // Hash only if a new password is provided
+                email: req.body.email,
+                dateOfBirth: req.body.dateOfBirth
             },
-            { new: true }
+            { new: true, omitUndefined: true } // Omit undefined fields
         );
 
-        console.log('Updated User:', updatedUser);
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
         res.json(updatedUser);
     } catch (err) {
         console.error('Error occurred:', err);
@@ -145,43 +144,43 @@ app.put('/users/:Username', async (req, res) => {
 
 
 
+
 // UPDATE
 // Add a movie to a user's list of favorites
 //passport.authenticate('jwt', { session: false }),
-app.patch('/users/:Username/movies/:MovieID', async (req, res) => {
-    console.log('Username:', req.params.Username);
-    console.log('MovieID:', req.params.MovieID);
-    
+app.patch('/users/:Username/movies/:MovieID?', async (req, res) => {
+    const { Username } = req.params;
+    const { MovieID: bodyMovieID } = req.body; // From request body
+    const urlMovieID = req.params.MovieID; // From URL
+
+    // Use the MovieID from the body if provided, otherwise fall back to the URL
+    const movieID = bodyMovieID || urlMovieID;
+
+    if (!movieID) {
+        return res.status(400).json({ message: 'MovieID is required' });
+    }
+
     try {
         // Find the user with a case-insensitive username
         const user = await User.findOne({
-            username: { $regex: new RegExp(`^${req.params.Username}$`, 'i') }
+            username: { $regex: new RegExp(`^${Username}$`, 'i') }
         });
 
         // Check if the user was found
         if (!user) {
-            console.log('User not found');
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Log the current favorite movies before the update
-        const currentFavoriteMovies = user.favoriteMovies.map(movie => movie.toString());
-        console.log('Current Favorite Movies:', currentFavoriteMovies);
-
         // Update the user's favoriteMovies array, adding MovieID if it's not already there
         const updatedUser = await User.findOneAndUpdate(
-            { username: { $regex: new RegExp(`^${req.params.Username}$`, 'i') } },
-            { $addToSet: { favoriteMovies: req.params.MovieID } }, // Prevent duplicates
+            { username: { $regex: new RegExp(`^${Username}$`, 'i') } },
+            { $addToSet: { favoriteMovies: movieID } }, // Prevent duplicates
             { new: true } // Return the updated document
         );
 
-        // Log the updated user's favorite movies
         if (updatedUser) {
-            const updatedFavoriteMovies = updatedUser.favoriteMovies.map(movie => movie.toString());
-            console.log('Updated Favorite Movies:', updatedFavoriteMovies);
-            return res.json(updatedFavoriteMovies);
+            return res.json(updatedUser.favoriteMovies);
         } else {
-            console.log('User not updated');
             return res.status(404).json({ message: 'User not found or no changes made' });
         }
     } catch (err) {
@@ -278,7 +277,7 @@ app.get('/movies', async (req, res) => {
     }
 });
 
-// READ
+// READ this was commented out 
 /*app.get('/movies', passport.authenticate('jwt', { session: false }), async (req, res) => {
     await Movie.find()
         .then((movies) => {
@@ -288,7 +287,7 @@ app.get('/movies', async (req, res) => {
             console.error(error);
             res.status(500).send('Error: ' + error);
         });
-});*/
+});
 //This code does not return movie by title
 //passport.authenticate('jwt', { session: false }),
 app.get('/movies/:title', async (req, res) => {
@@ -325,7 +324,7 @@ app.get('/movies/genre/:genreName', async (req, res) => {
         console.error(err);
         res.status(500).send('Error: ' + err);
     }
-});
+});*/
 
 // READ
 //passport.authenticate('jwt', { session: false }), 
@@ -349,7 +348,7 @@ app.get('/movies/director/:directorName', async (req, res) => {
     }
 });
 
-// READ
+// READ this was commented out
 /*app.get('/movies/directors/:directorName', passport.authenticate('jwt', { session: false }), async (req, res) => {
     
     const director = req.params.directorName;
@@ -395,17 +394,36 @@ app.get('/users/:Username', async (req, res) => {
         res.status(500).send('Error: ' + err);
     }
 });
+//delete a user
+app.delete('/users/:Username', async (req, res) => {
+    const requestedUsername = req.params.Username;
+
+    try {
+        // Find the user and delete
+        const deletedUser = await User.findOneAndDelete({
+            username: { $regex: new RegExp(`^${requestedUsername}$`, 'i') }
+        });
+
+        if (!deletedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'User deleted successfully' });
+    } catch (err) {
+        console.error('Error occurred:', err);
+        return res.status(500).json({ message: 'Error: ' + err.message });
+    }
+});
+
 
 
 const port = process.env.PORT || 8080;
+app.listen(port, '0.0.0.0', () => {
+    console.log('Listening on Port ' + port);
+});
+
+/*const port = process.env.PORT || 8080;
 app.listen(port, '0.0.0.0',() => {
  console.log('Listening on Port ' + port);
-});
-  
-  /*const PORT = 8080;
-  
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });*/
-  
-  
+});*/
+ 

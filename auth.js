@@ -33,25 +33,5 @@ router.post('/', (req, res) => {
         });
     })(req, res);
 });
-/*router.post('/', (req, res) => {
-    console.log('Login endpoint hit'); // Debug log
-    passport.authenticate('local', { session: false }, (error, user, info) => {
-        if (error || !user) {
-            return res.status(400).json({
-                message: info ? info.message : 'Something is not right', // Use info.message if available
-                user: user,
-            });
-        }
-        
-        req.login(user, { session: false }, (error) => {
-            if (error) {
-                return res.status(500).json({ message: 'Login error', error: error });
-            }
-            let token = generateJWTToken(user.toJSON());
-            return res.json({ user, token });
-        });
-    })(req, res);
-});*/
-
 
 module.exports = router; // Ensure this line is present

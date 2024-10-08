@@ -1,48 +1,51 @@
 
 // index.js
-require('dotenv').config();
-
+const dotenv = require('dotenv').config();
 const express = require('express');
-const morgan = require('morgan');
-const mongoose = require('mongoose');
-const { ObjectId } = mongoose.Types; // Import ObjectId from mongoose
+       morgan = require('morgan'),
+       mongoose = require('mongoose');
 const { Movie, User } = require('./models');
 const { check, validationResult } = require('express-validator');
-const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
-const authRouter = require('./auth');
-const app = express();
-//passport athenticate
-//const expressJwt = require('express-jwt');
-//const authenticateJwt = expressJwt({ secret: 'a1b2c3d4e5f6',});
-
-app.use(express.json());
-app.use(bodyParser.json());//bodyparser dependencies
-app.use(express.urlencoded({ extended: true }));//bodyparser middleware
-app.use(morgan('combined'));
+const passport = require('./passport'); // Import passport
+const authRouter = require('./auth'); // Import authRouter directly
 const cors = require('cors');
-//app.use(cors());
-let auth = require('./auth')(app);
 
-app.use('/auth', authRouter); // use authRouter for routes starting with '/auth'
 
-const passport = require('passport');
+const app = express();
 
-require('./passport');let allowedOrigins = ['http://localhost:8080', 'http://testsite.com'];
+// Log incoming requests
+/*app.use((req, res, next) => {
+    console.log(`${req.method} request for '${req.url}'`);
+    next(); // Call the next middleware or route handler
+});*/
 
+// Middleware setup
+app.use(express.json());
+//app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan('combined'));
+app.use(express.static('public'));
+app.use(passport.initialize()); // Initialize passport
+app.use('/login', authRouter);
+/*app.get('/test', (req, res) => {
+    res.send('Test route works!');
+});*/
+
+// CORS setup
+const allowedOrigins = ['http://localhost:8080', 'http://testsite.com'];
 app.use(cors({
-  origin: (origin, callback) => {
-    if(!origin) return callback(null, true);
-    if(allowedOrigins.indexOf(origin) === -1){ // If a specific origin isn’t found on the list of allowed origins
-      let message = 'The CORS policy for this application doesn’t allow access from origin ' + origin;
-      return callback(new Error(message ), false);
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (!allowedOrigins.includes(origin)) {
+            const message = 'The CORS policy for this application doesn’t allow access from origin ' + origin;
+            return callback(new Error(message), false);
+        }
+        return callback(null, true);
     }
-    return callback(null, true);
-  }
 }));
 
-//module.exports = authenticateJwt;
-
+// MongoDB connection
 const connectToDatabase = async () => {
     try {
         await mongoose.connect(process.env.MONGODB_URI);
@@ -53,6 +56,16 @@ const connectToDatabase = async () => {
 };
 
 connectToDatabase();
+
+// Authentication routes
+app.use('/auth', authRouter);
+
+// READ
+app.get('/', async (req, res) => {
+    res.send('Welcome to myFlix!');
+});
+
+
 
 //CREATE
 //Add a user
@@ -100,13 +113,11 @@ app.post('/users', [
     }
 });
 
-
-
 // UPDATE
 // A user's info, by username
-//passport.authenticate('jwt', { session: false }),
+//inserted passport
 
-app.put('/users/:Username',  async (req, res) => {
+app.put('/users/:Username', passport.authenticate('jwt', { session: false }),  async (req, res) => {
     const requestedUsername = req.params.Username;
     const newUsername = req.body.username;
 
@@ -142,13 +153,10 @@ app.put('/users/:Username',  async (req, res) => {
     }
 });
 
-
-
-
 // UPDATE
 // Add a movie to a user's list of favorites
-//passport.authenticate('jwt', { session: false }),
-app.patch('/users/:Username/movies/:MovieID?', async (req, res) => {
+//
+app.patch('/users/:Username/movies/:MovieID?', passport.authenticate('jwt', { session: false }), async (req, res) => {
     const { Username } = req.params;
     const { MovieID: bodyMovieID } = req.body; // From request body
     const urlMovieID = req.params.MovieID; // From URL
@@ -162,7 +170,7 @@ app.patch('/users/:Username/movies/:MovieID?', async (req, res) => {
 
     try {
         // Find the user with a case-insensitive username
-        const user = await User.findOne({
+        const user = await user.findOne({
             username: { $regex: new RegExp(`^${Username}$`, 'i') }
         });
 
@@ -172,7 +180,7 @@ app.patch('/users/:Username/movies/:MovieID?', async (req, res) => {
         }
 
         // Update the user's favoriteMovies array, adding MovieID if it's not already there
-        const updatedUser = await User.findOneAndUpdate(
+        const updatedUser = await user.findOneAndUpdate(
             { username: { $regex: new RegExp(`^${Username}$`, 'i') } },
             { $addToSet: { favoriteMovies: movieID } }, // Prevent duplicates
             { new: true } // Return the updated document
@@ -192,8 +200,8 @@ app.patch('/users/:Username/movies/:MovieID?', async (req, res) => {
 
 // DELETE
 // Delete a movie from a user's list of favorites
-//passport.authenticate('jwt', { session: false }),
-app.delete('/users/:Username/movies/:MovieID', async (req, res) => {
+//
+app.delete('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), async (req, res) => {
     console.log('Username:', req.params.Username);
     console.log('MovieID:', req.params.MovieID);
 
@@ -242,8 +250,8 @@ app.delete('/users/:Username/movies/:MovieID', async (req, res) => {
     }
 });
 //was able to delete user by username
-// passport.authenticate('jwt', { session: false }),
-app.delete('/users/:Username', async (req, res) => {
+// 
+app.delete('/users/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
     const username = req.params.Username;
     try {
         // Use a case-insensitive regular expression for the username search
@@ -259,15 +267,9 @@ app.delete('/users/:Username', async (req, res) => {
     }
 });
 
-
 // READ
-app.get('/', async (req, res) => {
-    res.send('Welcome to myFlix!');
-});
-
-// READ
-//passport.authenticate('jwt', { session: false }),
-app.get('/movies', async (req, res) => {
+//
+app.get('/movies', passport.authenticate('jwt', { session: false }), async (req, res) => {
     try {
         const movies = await Movie.find();
         res.status(200).json(movies);
@@ -278,7 +280,7 @@ app.get('/movies', async (req, res) => {
 });
 
 // READ this was commented out 
-/*app.get('/movies', passport.authenticate('jwt', { session: false }), async (req, res) => {
+app.get('/movies', passport.authenticate('jwt', { session: false }), async (req, res) => {
     await Movie.find()
         .then((movies) => {
             res.status(201).json(movies);
@@ -289,33 +291,39 @@ app.get('/movies', async (req, res) => {
         });
 });
 //This code does not return movie by title
-//passport.authenticate('jwt', { session: false }),
-app.get('/movies/:title', async (req, res) => {
+//
+app.get('/movies/:title', passport.authenticate('jwt', { session: false }), async (req, res) => {
     const title = req.params.title;
+    
+    // Validate input
+    if (!title || typeof title !== 'string') {
+        return res.status(400).json({ message: 'Invalid title' });
+    }
+
     try {
-        const movie = await Movie.findOne({ title: { $regex: new RegExp(title, "i") } });
+        console.log(`Searching for movie: ${title}`);
+        const movie = await movie.findOne({ title: { $regex: new RegExp(title, "i") } });
+        
         if (movie) {
-            res.status(200).json(movie);
+            return res.status(200).json(movie);
         } else {
-            res.status(404).send('Movie not found');
+            return res.status(404).json({ message: 'Movie not found' });
         }
     } catch (err) {
-        res.status(500).send('Server error');
+        console.error(err);
+        return res.status(500).json({ message: 'Server error' });
     }
 });
 
 
-// passport.authenticate('jwt', { session: false }),
-app.get('/movies/genre/:genreName', async (req, res) => {
+
+// 
+app.get('/movies/genre/:genreName', passport.authenticate('jwt', { session: false }), async (req, res) => {
     console.log('error getting genre', req.params);
     const genre = req.params.genreName;
     try {
-        
         const movies = await Movie.find({ 'genre.name': { $regex: new RegExp(genre, "i") } });
-        
         if (movies && movies.length > 0) {
-            
-            const genres = movies.map(movie => movie.genre);
             res.status(200).json({ movies });
         } else {
             res.status(404).send('No movies found for the specified genre');
@@ -324,11 +332,11 @@ app.get('/movies/genre/:genreName', async (req, res) => {
         console.error(err);
         res.status(500).send('Error: ' + err);
     }
-});*/
+});
 
 // READ
-//passport.authenticate('jwt', { session: false }), 
-app.get('/movies/director/:directorName', async (req, res) => {
+// 
+app.get('/movies/director/:directorName', passport.authenticate('jwt', { session: false }), async (req, res) => {
     console.log('error getting director', req.params);
     const director = req.params.directorName;
     try {
@@ -348,27 +356,6 @@ app.get('/movies/director/:directorName', async (req, res) => {
     }
 });
 
-// READ this was commented out
-/*app.get('/movies/directors/:directorName', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    
-    const director = req.params.directorName;
-    try {
-       
-        const movies = await Movie.find({ 'director.name': { $regex: new RegExp(director, "i") } });
-
-        if (movies && movies.length > 0) {
-            const directors = movies.map(movie => movie.director);
-            res.status(200).json({ movies });
-        } else {
-            res.status(404).send('No such director');
-        }
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Error: ' + err);
-    }
-});*/
-
-
 //READ
 app.get('/users', async (req, res) => {
     console.log(req.body);
@@ -383,8 +370,8 @@ app.get('/users', async (req, res) => {
 });
 
 //READ
-//passport.authenticate('jwt', { session: false }),
-app.get('/users/:Username', async (req, res) => {
+//
+app.get('/users/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
     try {
         let user = await User.findOne({ username: req.params.Username });
         console.log(user);
@@ -415,15 +402,8 @@ app.delete('/users/:Username', async (req, res) => {
     }
 });
 
-
-
 const port = process.env.PORT || 8080;
 app.listen(port, '0.0.0.0', () => {
     console.log('Listening on Port ' + port);
 });
 
-/*const port = process.env.PORT || 8080;
-app.listen(port, '0.0.0.0',() => {
- console.log('Listening on Port ' + port);
-});*/
- 

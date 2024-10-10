@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 // Define Movie Schema
 const MovieSchema = new mongoose.Schema({
@@ -19,16 +19,6 @@ const UserSchema = new mongoose.Schema({
     dateOfBirth: { type: Date, required: true },
     favoriteMovies: [{ type: String }]
 });
-
-/*const UserSchema = new mongoose.Schema({
-    //username: { type: String, required: true, unique: true },
-    username: { type: String, required: true, unique: true, index: true },
-    password: { type: String, required: true },
-    email: { type: String, required: true, unique: true, index: true },
-    //email: { type: String, required: true, unique: true },
-    dateOfBirth: { type: Date, required: true },
-    favoriteMovies: [{ type: String }]
-});*/
 
 // Static method to hash password
 UserSchema.statics.hashPassword = (password) => {

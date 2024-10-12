@@ -22,7 +22,7 @@ The request body can include the following field:
 | `MovieID`  | String   | Yes      | The ID of the movie to be added to favorites. |
 
 ## Example Request
-```json
+```https://movie-api1-fbc239963864.herokuapp.com/users/:Username/movies/:MovieID
 {
     "MovieID": "12345abcde"
 }
@@ -42,7 +42,7 @@ The Delete Movie from User's Favorites endpoint allows authenticated users to re
 - **MovieID**: The ID of the movie to be removed from the user's favorites, passed as a URL parameter.
 
 ## Example Request
-```http
+```https://movie-api1-fbc239963864.herokuapp.com
 DELETE /users/michaeljordan/movies/12345abcde HTTP/1.1
 Authorization: Bearer <token>
 # User Deletion and Movies Retrieval Endpoint Documentation
@@ -64,7 +64,7 @@ This documentation covers two endpoints: one for deleting a user from the system
 - **Username**: The username of the user to be deleted, passed as a URL parameter.
 
 ### Example Request
-```http
+```https://movie-api1-fbc239963864.herokuapp.com/users/:Username
 DELETE /users/michaeljordan HTTP/1.1
 Authorization: Bearer <token>
 # Get Movie by Title Endpoint Documentation
@@ -84,7 +84,7 @@ This endpoint allows clients to retrieve details of a movie based on its title. 
 - **title**: The title of the movie to be retrieved, passed as a URL parameter.
 
 ### Example Request
-```http
+```https://movie-api1-fbc239963864.herokuapp.com/movies/:title
 GET /movies/Inception HTTP/1.1
 Authorization: Bearer <token>
 # Get Movies by Genre Endpoint Documentation
@@ -104,7 +104,7 @@ This endpoint allows clients to retrieve a list of movies that belong to a speci
 - **genreName**: The name of the genre to filter movies by, passed as a URL parameter.
 
 ### Example Request
-```http
+```https://movie-api1-fbc239963864.herokuapp.com/movies/genre/:genreName
 GET /movies/genre/Action HTTP/1.1
 Authorization: Bearer <token>
 # Get Movies by Director Endpoint Documentation
@@ -124,7 +124,7 @@ This endpoint allows clients to retrieve a list of movies directed by a specifie
 - **directorName**: The name of the director to filter movies by, passed as a URL parameter.
 
 ### Example Request
-```http
+```https://movie-api1-fbc239963864.herokuapp.com/movies/director/:directorName
 GET /movies/director/Christopher%20Nolan HTTP/1.1
 Authorization: Bearer <token>
 # Get All Users Endpoint Documentation
@@ -141,7 +141,7 @@ This endpoint allows clients to retrieve a list of all users in the system. It f
 - **Content-Type**: `application/json` (optional, as it does not affect the response)
 
 ### Example Request
-```http
+```https://movie-api1-fbc239963864.herokuapp.com/users
 GET /users HTTP/1.1
 # User Retrieval and Deletion Endpoint Documentation
 
@@ -159,6 +159,6 @@ This section documents two endpoints: one for retrieving a user by username and 
 - **Authorization**: `Bearer <token>` (JWT token for authentication)
 
 ### Example Request
-```http
+```https://movie-api1-fbc239963864.herokuapp.com/users/:Username
 GET /users/michaeljordan HTTP/1.1
 Authorization: Bearer <your_jwt_token>

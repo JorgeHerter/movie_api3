@@ -22,14 +22,13 @@ const UserSchema = new mongoose.Schema({
 
 // Static method to hash password
 UserSchema.statics.hashPassword = (password) => {
-    return bcrypt.hashSync(password, 10);
+    return bcryptjs.hashSync(password, 10);
 };
 
 // Instance method to validate password
-UserSchema.methods.validatePassword = function(password) {
-    return bcrypt.compareSync(password, this.password);
+UserSchema.methods.validatePassword = async function(password) {
+    return await bcryptjs.compare(password, this.password); 
 };
-
 // Create models
 const Movie = mongoose.model('Movie', MovieSchema);
 const User = mongoose.model('User', UserSchema);

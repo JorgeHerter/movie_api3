@@ -1,63 +1,59 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const bcryptjs = require('bcryptjs');
 const Models = require('./models.js');
 const passportJWT = require('passport-jwt');
 
 let Users = Models.User;
-const JWTStrategy = passportJWT.Strategy;
-const ExtractJWT = passportJWT.ExtractJwt;
+let JWTStrategy = passportJWT.Strategy;
+let ExtractJWT = passportJWT.ExtractJwt;
 
-// Local Strategy for username/password authentication
-passport.use(
-    new LocalStrategy(
-        {
-            usernameField: 'username',  // Match your request body
-            passwordField: 'password',  // Match your request body
-        },
-        async (username, password, done) => {
-            console.log(`Attempting to log in with username: ${username}`);
-            try {
-                const user = await Users.findOne({ username });
-                
-                // Check if user exists
-                if (!user) {
-                    console.log('Incorrect username');
-                    return done(null, false, { message: 'Incorrect username or password.' });
-                }
+passport.use(new LocalStrategy({
+  usernameField: 'username',
+  passwordField: 'password'
+}, async (username, password, callback) => {
+  console.log('Attempting to find user with username:', username);
+  try {
+    const user = await Users.findOne({ username: username });
+    if (!user) {
+      console.log('User not found in database');
+      return callback(null, false, { message: 'Incorrect username or password.' });
+    }
+    console.log('User found:', user.username);
+    
+    // Use bcryptjs to compare the provided password with the stored hash
+    const isValid = await bcryptjs.compare(password, user.password);
+    console.log('Password validation result:', isValid);
+    
+    if (!isValid) {
+      console.log('Password validation failed');
+      return callback(null, false, { message: 'Incorrect password.' });
+    }
+    console.log('Authentication successful');
+    return callback(null, user);
+  } catch (error) {
+    console.log('Error during authentication:', error);
+    return callback(error);
+  }
+}));
 
-                // Validate password
-                if (!user.validatePassword(password)) {
-                    console.log('Incorrect password');
-                    return done(null, false, { message: 'Incorrect password.' });
-                }
-
-                console.log('User authenticated successfully');
-                return done(null, user);
-            } catch (error) {
-                console.error('Error in user lookup:', error);
-                return done(error);
-            }
-        }
-    )
-);
-
-// JWT Strategy for token-based authentication
-passport.use(
-    new JWTStrategy(
-        {
-            jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
-            secretOrKey: 'a1b2c3d4e5f6',  // Replace with a secure secret
-        },
-        async (jwtPayload, done) => {
-            try {
-                const user = await Users.findById(jwtPayload._id);
-                return done(null, user);
-            } catch (error) {
-                return done(error);
-            }
-        }
-    )
-);
+passport.use(new JWTStrategy({
+  jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+  secretOrKey: 'JWT_SECRET'
+}, async (jwtPayload, callback) => {
+  try {
+    const user = await Users.findById(jwtPayload._id);
+    if (!user) {
+      console.log('User not found for JWT payload');
+      return callback(null, false);
+    }
+    console.log('User found for JWT payload:', user.username);
+    return callback(null, user);
+  } catch (error) {
+    console.log('Error in JWT strategy:', error);
+    return callback(error);
+  }
+}));
 
 module.exports = passport;
 

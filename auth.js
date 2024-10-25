@@ -6,12 +6,13 @@ const passport = require('passport');
 
 require('./passport'); // Your local passport file
 
-const jwtSecret = 'your_jwt_secret'; // This should be in an environment variable in a real application
+//const jwtSecret = 'your_jwt_secret'; // This should be in an environment variable in a real application
+const jwtSecret = process.env.JWT_SECRET;
 
 let generateJWTToken = (user) => {
   return jwt.sign(user, jwtSecret, {
     subject: user.username, // Changed from Username to username to match your model
-    expiresIn: '7d',
+    expiresIn: '14d',
     algorithm: 'HS256'
   });
 }

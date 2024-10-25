@@ -1,12 +1,13 @@
-const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const bcryptjs = require('bcryptjs');
-const Models = require('./models.js');
-const passportJWT = require('passport-jwt');
+const passport = require('passport'),
+  LocalStrategy = require('passport-local').Strategy,
+  Models = require('./models.js'),
+  passportJWT = require('passport-jwt');
 
-let Users = Models.User;
-let JWTStrategy = passportJWT.Strategy;
-let ExtractJWT = passportJWT.ExtractJwt;
+const bcryptjs = require('bcryptjs');
+const JWT_SECRET= process.env.JWT_SECRET;
+let Users = Models.User,
+  JWTStrategy = passportJWT.Strategy,
+  ExtractJWT = passportJWT.ExtractJwt;
 
 passport.use(new LocalStrategy({
   usernameField: 'username',
@@ -39,8 +40,9 @@ passport.use(new LocalStrategy({
 
 passport.use(new JWTStrategy({
   jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
-  secretOrKey: 'JWT_SECRET'
+  secretOrKey: JWT_SECRET
 }, async (jwtPayload, callback) => {
+  console.log('JWT payload received:', 'JWT_SECRET', jwtPayload);
   try {
     const user = await Users.findById(jwtPayload._id);
     if (!user) {

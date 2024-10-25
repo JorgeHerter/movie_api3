@@ -197,47 +197,6 @@ app.put('/users/:Username', passport.authenticate('jwt', { session: false }),  a
 
 // UPDATE
 // Add a movie to a user's list of favorites
-//
-/*app.patch('/users/:Username/movies/:MovieID?', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    const { Username } = req.params;
-    const { MovieID: bodyMovieID } = req.body; // From request body
-    const urlMovieID = req.params.MovieID; // From URL
-
-    // Use the MovieID from the body if provided, otherwise fall back to the URL
-    const movieID = bodyMovieID || urlMovieID;
-
-    if (!movieID) {
-        return res.status(400).json({ message: 'MovieID is required' });
-    }
-
-    try {
-        // Find the user with a case-insensitive username
-        const user = await user.findOne({
-            username: { $regex: new RegExp(`^${Username}$`, 'i') }
-        });
-
-        // Check if the user was found
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        // Update the user's favoriteMovies array, adding MovieID if it's not already there
-        const updatedUser = await user.findOneAndUpdate(
-            { username: { $regex: new RegExp(`^${Username}$`, 'i') } },
-            { $addToSet: { favoriteMovies: movieID } }, // Prevent duplicates
-            { new: true } // Return the updated document
-        );
-
-        if (updatedUser) {
-            return res.json(updatedUser.favoriteMovies);
-        } else {
-            return res.status(404).json({ message: 'User not found or no changes made' });
-        }
-    } catch (err) {
-        console.error('Error occurred:', err);
-        return res.status(500).json({ message: 'Error: ' + err.message });
-    }
-});*/
 app.patch('/users/:Username/movies/:MovieID?', passport.authenticate('jwt', { session: false }), async (req, res) => {
     const { Username } = req.params;
     const { MovieID: bodyMovieID } = req.body; // From request body
@@ -333,7 +292,7 @@ app.delete('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { se
 });
 //was able to delete user by username
 // 
-app.delete('/users/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
+/*app.delete('/users/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
     const username = req.params.Username;
     try {
         // Use a case-insensitive regular expression for the username search
@@ -346,6 +305,37 @@ app.delete('/users/:Username', passport.authenticate('jwt', { session: false }),
     } catch (err) {
         console.error(err);
         res.status(500).send('Error: ' + err);
+    }
+});*/
+
+app.delete('/users/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    const username = req.params.Username;
+    console.log('Attempting to delete user:', username);
+
+    try {
+        // Use a case-insensitive regular expression for the username search
+        const user = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
+
+        // Check if the user was found
+        if (!user) {
+            console.log('User not found:', username);
+            return res.status(404).json({ message: `${username} was not found` });
+        }
+
+        // Proceed to delete the user
+        const deletedUser = await User.findOneAndDelete({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
+
+        // If the user was deleted, return success
+        if (deletedUser) {
+            console.log('User deleted successfully:', username);
+            return res.status(200).json({ message: `${username} was deleted.` });
+        } else {
+            console.log('User not deleted for an unknown reason');
+            return res.status(404).json({ message: `${username} could not be deleted` });
+        }
+    } catch (err) {
+        console.error('Error occurred:', err);
+        return res.status(500).json({ message: 'Error: ' + err.message });
     }
 });
 

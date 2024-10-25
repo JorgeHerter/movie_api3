@@ -1,229 +1,246 @@
-﻿# movie_api2
-# User Creation Endpoint Documentation
 
-## Overview
-The User Creation endpoint allows clients to create a new user in the system. It validates the input data and securely stores the user information, including a hashed password.
+# Movie API Documentation
 
-## Endpoint
-**POST** `/users`
+Welcome to the Movie API! This API allows you to manage users and movies. Below are the endpoints available for use.
 
-## Request Headers
-- **Content-Type**: `application/json`
+## Base URL
+https://movie-api1-fbc239963864.herokuapp.com/
 
-## Request Body
-The request body must be a JSON object with the following fields:
+## Authentication
+Some endpoints require authentication using JWT. Make sure to include the token in the `Authorization` header as follows:
+Authorization: Bearer YOUR_JWT_TOKEN
 
-| Field         | Type     | Required | Description                                     |
-|---------------|----------|----------|-------------------------------------------------|
-| `username`    | String   | Yes      | A unique username (at least 5 characters, alphanumeric). |
-| `password`    | String   | Yes      | The user's password (must contain at least one uppercase letter and one number). |
-| `email`       | String   | Yes      | The user's email address (must be valid).      |
-| `dateOfBirth` | String   | Yes      | The user's date of birth in `YYYY-MM-DD` format. |
+## Endpoints
 
-## Example Request
-```https://movie-api1-fbc239963864.herokuapp.com/users
-{
-    "username": "michaeljordan",
-    "password": "HisAirness@1992",
-    "email": "michael.jordan@example.com",
-    "dateOfBirth": "1963-02-17"
-}
-# User Update Endpoint Documentation
+### 1. Base Route
+- **GET** `/`
+  - **Description**: Returns a welcome message.
+  - **Response**: 
+    ```json
+    {
+      "message": "Welcome to myFlix!"
+    }
+    ```
 
-## Overview
-The User Update endpoint allows authenticated users to update their profile information, including their username, password, email, and date of birth. The endpoint ensures that the new username is unique and validates the input before updating the user details in the database.
+### 2. Test Route
+- **GET** `/test`
+  - **Description**: Tests if the API is working.
+  - **Response**:
+    ```json
+    {
+      "message": "Express is working"
+    }
+    ```
 
-## Endpoint
-**PUT** `/users/:Username`
+### 3. Users
 
-## Request Headers
-- **Authorization**: `Bearer <token>` (JWT token for authentication)
+#### Create a User
+- **POST** `/users`
+  - **Description**: Adds a new user.
+  - **Body**:
+    ```json
+    {
+      "username": "exampleUser",
+      "email": "user@example.com",
+      "dateOfBirth": "YYYY-MM-DD",
+      "password": "examplePassword"
+    }
+    ```
+  - **Response**:
+    - Success (201):
+      ```json
+      {
+        "message": "User created successfully",
+        "user": { ...user data... }
+      }
+      ```
+    - Error (422):
+      ```json
+      {
+        "errors": [{ ...validation errors... }]
+      }
+      ```
 
-## Request Parameters
-- **Username**: The current username of the user being updated, passed as a URL parameter.
+#### Get All Users
+- **GET** `/users`
+  - **Description**: Retrieves a list of all users.
+  - **Response**:
+    ```json
+    [
+      { ...user data... },
+      { ...user data... }
+    ]
+    ```
 
-## Request Body
-The request body must be a JSON object with any of the following fields that the user wishes to update:
+#### Get a User by Username
+- **GET** `/users/:Username`
+  - **Description**: Retrieves a specific user by username.
+  - **Response**:
+    - Success (200):
+      ```json
+      { ...user data... }
+      ```
+    - Error (404):
+      ```json
+      {
+        "message": "User not found"
+      }
+      ```
 
-| Field         | Type     | Required | Description                                     |
-|---------------|----------|----------|-------------------------------------------------|
-| `username`    | String   | No       | A new unique username (at least 5 characters, alphanumeric). |
-| `password`    | String   | No       | A new password (must contain at least one uppercase letter and one number). |
-| `email`       | String   | No       | A new email address (must be valid).           |
-| `dateOfBirth` | String   | No       | A new date of birth in `YYYY-MM-DD` format.   |
+#### Update User Information
+- **PUT** `/users/:Username`
+  - **Description**: Updates user information.
+  - **Body**:
+    ```json
+    {
+      "username": "newUsername",
+      "email": "newEmail@example.com",
+      "dateOfBirth": "YYYY-MM-DD",
+      "password": "newPassword"
+    }
+    ```
+  - **Response**:
+    - Success (200):
+      ```json
+      { ...updated user data... }
+      ```
+    - Error (404):
+      ```json
+      {
+        "message": "User not found"
+      }
+      ```
 
-## Example Request
-```https://movie-api1-fbc239963864.herokuapp.com/users/:Username
-{
-    "username": "michaeljordan23",
-    "password": "HisNewPassword@1992",
-    "email": "michael.jordan23@example.com",
-    "dateOfBirth": "1963-02-17"
-}
-# Update User's Favorite Movies Endpoint Documentation
+#### Delete a User
+- **DELETE** `/users/:Username`
+  - **Description**: Deletes a user by username.
+  - **Response**:
+    - Success (200):
+      ```json
+      {
+        "message": "User deleted successfully"
+      }
+      ```
+    - Error (404):
+      ```json
+      {
+        "message": "User not found"
+      }
+      ```
 
-## Overview
-The Update User's Favorite Movies endpoint allows authenticated users to add a movie to their list of favorite movies. It ensures that duplicates are not added to the user's favorites list.
+### 4. Movies
 
-## Endpoint
-**PATCH** `/users/:Username/movies/:MovieID`
+#### Get All Movies
+- **GET** `/movies`
+  - **Description**: Retrieves a list of all movies.
+  - **Response**:
+    ```json
+    [
+      { ...movie data... },
+      { ...movie data... }
+    ]
+    ```
 
-## Request Headers
-- **Authorization**: `Bearer <token>` (JWT token for authentication)
+#### Get a Movie by Title
+- **GET** `/movies/:title`
+  - **Description**: Retrieves a specific movie by title.
+  - **Response**:
+    - Success (200):
+      ```json
+      { ...movie data... }
+      ```
+    - Error (404):
+      ```json
+      {
+        "message": "Movie not found"
+      }
+      ```
 
-## Request Parameters
-- **Username**: The username of the user whose favorites list is being updated, passed as a URL parameter.
-- **MovieID**: The ID of the movie to be added to the user's favorites, passed as a URL parameter or in the request body.
+#### Get Movies by Genre
+- **GET** `/movies/genre/:genreName`
+  - **Description**: Retrieves a list of movies by genre.
+  - **Response**:
+    - Success (200):
+      ```json
+      {
+        "movies": [{ ...movie data... }]
+      }
+      ```
+    - Error (404):
+      ```json
+      {
+        "message": "No movies found for the specified genre"
+      }
+      ```
 
-## Request Body
-The request body can include the following field:
+#### Get Movies by Director
+- **GET** `/movies/director/:directorName`
+  - **Description**: Retrieves a list of movies directed by a specific director.
+  - **Response**:
+    - Success (200):
+      ```json
+      {
+        "movies": [{ ...movie data... }]
+      }
+      ```
+    - Error (404):
+      ```json
+      {
+        "message": "No movies found for the specified director"
+      }
+      ```
 
-| Field      | Type     | Required | Description                                   |
-|------------|----------|----------|-----------------------------------------------|
-| `MovieID`  | String   | Yes      | The ID of the movie to be added to favorites. |
+### 5. User Favorites
 
-## Example Request
-```https://movie-api1-fbc239963864.herokuapp.com/users/:Username/movies/:MovieID
-{
-    "MovieID": "12345abcde"
-}
-# Delete Movie from User's Favorites Endpoint Documentation
+#### Add a Movie to User Favorites
+- **PATCH** `/users/:Username/movies/:MovieID?`
+  - **Description**: Adds a movie to a user's list of favorite movies.
+  - **Body** (optional):
+    ```json
+    {
+      "MovieID": "movieID123"
+    }
+    ```
+  - **Response**:
+    - Success (200):
+      ```json
+      [
+        "movieID1",
+        "movieID2"
+      ]
+      ```
+    - Error (404):
+      ```json
+      {
+        "message": "User not found"
+      }
+      ```
 
-## Overview
-The Delete Movie from User's Favorites endpoint allows authenticated users to remove a movie from their list of favorite movies. It verifies the user's identity and ensures that the specified movie is present in the user's favorites before attempting to delete it.
+#### Delete a Movie from User Favorites
+- **DELETE** `/users/:Username/movies/:MovieID`
+  - **Description**: Deletes a movie from a user's list of favorite movies.
+  - **Response**:
+    - Success (200):
+      ```json
+      [
+        "movieID1",
+        "movieID2"
+      ]
+      ```
+    - Error (404):
+      ```json
+      {
+        "message": "User not found or MovieID not in favorites"
+      }
+      ```
 
-## Endpoint
-**DELETE** `/users/:Username/movies/:MovieID`
+## Error Handling
+In case of an error, the API will return appropriate status codes and messages. Common errors include:
 
-## Request Headers
-- **Authorization**: `Bearer <token>` (JWT token for authentication)
+- **400 Bad Request**: Invalid input.
+- **404 Not Found**: Resource not found.
+- **500 Internal Server Error**: Server-side error.
 
-## Request Parameters
-- **Username**: The username of the user whose favorites list is being modified, passed as a URL parameter.
-- **MovieID**: The ID of the movie to be removed from the user's favorites, passed as a URL parameter.
-
-## Example Request
-```http
-DELETE /users/michaeljordan/movies/12345abcde HTTP/1.1
-Authorization: Bearer <token>
-
-# User Deletion and Movies Retrieval Endpoint Documentation
-
-## Overview
-This documentation covers two endpoints: one for deleting a user from the system and another for retrieving a list of movies. Both endpoints require user authentication via JWT.
-
----
-
-## Delete User Endpoint
-
-### Endpoint
-**DELETE** `/users/:Username`
-
-### Request Headers
-- **Authorization**: `Bearer <token>` (JWT token for authentication)
-
-### Request Parameters
-- **Username**: The username of the user to be deleted, passed as a URL parameter.
-
-### Example Request
-```https://movie-api1-fbc239963864.herokuapp.com/username
-DELETE /users/michaeljordan HTTP/1.1
-Authorization: Bearer <token>
-michaeljordan was deleted.
-michaeljordan was not found.
-# Get Movie by Title Endpoint Documentation
-
-## Overview
-This endpoint allows clients to retrieve details of a movie based on its title. It uses JWT for authentication and includes input validation to ensure the title is provided and correctly formatted.
-
----
-
-## Endpoint
-**GET** `/movies/:title`
-
-### Request Headers
-- **Authorization**: `Bearer <token>` (JWT token for authentication)
-
-### Request Parameters
-- **title**: The title of the movie to be retrieved, passed as a URL parameter.
-
-### Example Request
-```https://movie-api1-fbc239963864.herokuapp.com/movies/:title
-GET /movies/Inception HTTP/1.1
-Authorization: Bearer <token>
-# Get Movies by Genre Endpoint Documentation
-
-## Overview
-This endpoint allows clients to retrieve a list of movies that belong to a specified genre. It uses JWT for authentication and provides case-insensitive searching through regex.
-
----
-
-## Endpoint
-**GET** `/movies/genre/:genreName`
-
-### Request Headers
-- **Authorization**: `Bearer <token>` (JWT token for authentication)
-
-### Request Parameters
-- **genreName**: The name of the genre to filter movies by, passed as a URL parameter.
-
-### Example Request
-```https://movie-api1-fbc239963864.herokuapp.com/movies/genre/:genreName
-GET /movies/genre/Action HTTP/1.1
-Authorization: Bearer <token>
-# Get Movies by Director Endpoint Documentation
-
-## Overview
-This endpoint allows clients to retrieve a list of movies directed by a specified director. It utilizes JWT for authentication and performs case-insensitive searching through regex.
-
----
-
-## Endpoint
-**GET** `/movies/director/:directorName`
-
-### Request Headers
-- **Authorization**: `Bearer <token>` (JWT token for authentication)
-
-### Request Parameters
-- **directorName**: The name of the director to filter movies by, passed as a URL parameter.
-
-### Example Request
-```https://movie-api1-fbc239963864.herokuapp.com/movies/director/:directorName
-GET /movies/director/Christopher%20Nolan HTTP/1.1
-Authorization: Bearer <token>
-# Get All Users Endpoint Documentation
-
-## Overview
-This endpoint allows clients to retrieve a list of all users in the system. It fetches user data from the database and returns it as a JSON response.
-
----
-
-## Endpoint
-**GET** `/users`
-
-### Request Headers
-- **Content-Type**: `application/json` (optional, as it does not affect the response)
-
-### Example Request
-```https://movie-api1-fbc239963864.herokuapp.com/users
-GET /users HTTP/1.1
-# User Retrieval and Deletion Endpoint Documentation
-
-## Overview
-This section documents two endpoints: one for retrieving a user by username and another for deleting a user from the system.
-
----
-
-## Get User by Username Endpoint
-
-### Endpoint
-**GET** `/users/:Username`
-
-#### Request Headers
-- **Authorization**: `Bearer <token>` (JWT token for authentication)
-
-### Example Request
-```https://movie-api1-fbc239963864.herokuapp.com/users/:Username
-GET /users/michaeljordan HTTP/1.1
-Authorization: Bearer <your_jwt_token>
+## Conclusion
+This API provides a full-fledged interface for managing users and movies. Make sure to handle JWT authentication where required and test each endpoint to ensure functionality.
 

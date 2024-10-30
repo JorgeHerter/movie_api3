@@ -485,7 +485,7 @@ app.get('/movies/director/:directorName',
 
 
 //READ
-app.get('/users', async (req, res) => {
+/*app.get('/users', async (req, res) => {
     console.log(req.body);
     await User.find()
         .then((users) => {
@@ -495,7 +495,7 @@ app.get('/users', async (req, res) => {
             console.error(err);
             res.status(500).send('Error: ' + err);
         });
-});
+});*/
 
 //READ
 app.get('/users/:Username', 

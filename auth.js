@@ -1,56 +1,37 @@
 
-const express = require('express');
-const router = express.Router();
-const jwt = require('jsonwebtoken');
-const passport = require('passport');
+const jwtSecret = 'a1b2c3d4e5f6';
 
-require('./passport'); // Your local passport file
+const jwt = require('jsonwebtoken'),
+    passport = require('passport');
 
-//const jwtSecret = 'your_jwt_secret'; // This should be in an environment variable in a real application
-const jwtSecret = process.env.JWT_SECRET;
+require('passport');
 
 let generateJWTToken = (user) => {
-  return jwt.sign(user, jwtSecret, {
-    subject: user.username, // Changed from Username to username to match your model
-    expiresIn: '14d',
-    algorithm: 'HS256'
-  });
+    return jwt.sign(user, jwtSecret, {
+        subject: user.username,
+        expiresIn: '7d',
+        algorithm: 'HS256'
+    });
 }
 
-/* POST login. */
-router.post('/login', (req, res) => {
-  console.log('Login attempt:', req.body);
-
-  // Basic validation
-  if (!req.body.username || !req.body.password) {
-    console.log('Login failed: Missing username or password');
-    return res.status(400).json({ message: 'Both username and password are required.' });
-  }
-
-  passport.authenticate('local', { session: false }, (error, user, info) => {
-    console.log('Passport authenticate result:', { error, user, info });
-    if (error) {
-      console.log('Login error:', error);
-      return res.status(500).json({ message: 'Error during authentication', error: error });
-    }
-    if (!user) {
-      console.log('Login failed:', info.message);
-      return res.status(400).json({
-        message: 'Authentication failed',
-        info: info
-      });
-    }
-    
-    req.login(user, { session: false }, (error) => {
-      if (error) {
-        console.log('Login error:', error);
-        return res.status(500).json({ message: 'Error during login', error: error });
-      }
-      let token = generateJWTToken(user.toJSON());
-      console.log('Login successful for user:', user.username);
-      return res.json({ user, token });
+module.exports = (router) => {
+    router.post('/login', (req, res) => {
+        passport.authenticate('local', { session: false}, (error, user, info) => {
+            console.log('auth', user);
+            console.log('', error);
+            if (error || !user) {
+                return res.status(400).json({
+                    message: 'Something is not right',
+                    user: user
+                });
+            }
+            req.login(user, {session: false}, (error) => {
+                if (error) {
+                    res.send(error);
+                }
+                let token = generateJWTToken(user.toJSON());
+                return res.json({ user, token });
+            });
+        })(req, res);
     });
-  })(req, res);
-});
-
-module.exports = router;
+}

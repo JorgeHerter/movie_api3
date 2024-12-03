@@ -31,6 +31,7 @@ app.use(express.static('public'));
 const allowedOrigins = [
     'http://localhost:8080',
     'http://localhost:3000',
+   'https://jorgemyflixapp.netlify.app'
 ];
 
 app.use(cors({
@@ -356,6 +357,69 @@ app.get('/movies', (req, res, next) => {
       res.status(500).send('Error: ' + error.message);
     }
   });
+
+  /*app.get('/movies/public', async (req, res) => {
+  try {
+    // Only return the title and imagePath fields
+    const movies = await Movie.find().select('title imagePath'); 
+    console.log(`Found ${movies.length} movies`);
+
+    // Send the list of movies with titles and imagePaths
+    res.status(200).json(movies);
+  } catch (error) {
+    console.error('Error fetching movies:', error);
+    res.status(500).send('Error: ' + error.message);
+  }
+});*/
+
+app.get('/users/:username/movies', 
+    (req, res, next) => {
+        console.log('GET /users/:username/movies route hit');
+        console.log('Headers:', req.headers);
+        
+        // Authenticate the request
+        passport.authenticate('jwt', { session: false }, (err, user, info) => {
+            if (err) {
+                console.error('Authentication error:', err);
+                return next(err);
+            }
+            if (!user) {
+                console.log('Unauthorized access: No user found');
+                return res.status(401).json({ message: 'Unauthorized' });
+            }
+            req.user = user; // Attach user to the request object
+            next(); // Proceed to the next middleware
+        })(req, res, next);
+    },
+    async (req, res) => {
+        const { username } = req.params;
+
+        try {
+            // Validate the username input
+            if (!username || typeof username !== 'string') {
+                console.log('Invalid username input:', username);
+                return res.status(400).json({ message: 'Invalid username' });
+            }
+
+            console.log(`Fetching favorite movies for user: ${username}`);
+            
+            // Assuming that the User model has a 'favorites' array to store movie IDs
+            const user = await User.findOne({ username: username }).populate('favorites');
+            
+            if (user) {
+                // If user is found, return their favorite movies
+                console.log(`Favorites fetched for ${username}:`, user.favorites);
+                return res.status(200).json(user.favorites);
+            } else {
+                console.log(`User not found: ${username}`);
+                return res.status(404).json({ message: 'User not found' });
+            }
+        } catch (err) {
+            console.error('Error occurred while fetching favorite movies:', err);
+            return res.status(500).json({ message: 'Server error', error: err.message });
+        }
+    }
+);
   
 app.get('/movies/:title', 
     (req, res, next) => {

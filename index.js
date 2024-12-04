@@ -33,8 +33,22 @@ const allowedOrigins = [
     'http://localhost:3000',
    'https://jorgemyflixapp.netlify.app'
 ];
+const corsOptions = {
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      const message = `The CORS policy for this application doesn't allow access from origin ${origin}`;
+      return callback(new Error(message), false);
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,  // Allow cookies or authorization tokens to be sent
+  };
+  
+  app.options('*', cors(corsOptions)); // Handle preflight for all routes
 
-app.use(cors({
+/*app.use(cors({
     origin: (origin, callback) => {
         if (!origin || allowedOrigins.includes(origin)) {
             return callback(null, true);
@@ -42,7 +56,7 @@ app.use(cors({
         const message = `The CORS policy for this application doesn't allow access from origin ${origin}`;
         return callback(new Error(message), false);
     }
-}));
+}));*/
 
 // Initialize Passport
 //app.use(passport.initialize());

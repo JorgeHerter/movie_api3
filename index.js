@@ -29,7 +29,6 @@ app.use(express.static('public'));
 
 // CORS configuration
 const allowedOrigins = [
-    'http://localhost:8080',
     'http://localhost:3000',
    'https://jorgemyflixapp.netlify.app'
 ];
@@ -45,6 +44,9 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,  // Allow cookies or authorization tokens to be sent
   };
+
+  // Use CORS for all routes
+  app.use(cors(corsOptions));
   
   app.options('*', cors(corsOptions)); // Handle preflight for all routes
 
@@ -647,7 +649,7 @@ app.use('*', (req, res) => {
   });
 
 // listen for requests
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Your app is listening on port ${port}`);
 });

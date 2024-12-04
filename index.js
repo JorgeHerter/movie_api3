@@ -40,7 +40,7 @@ const corsOptions = {
       const message = `The CORS policy for this application doesn't allow access from origin ${origin}`;
       return callback(new Error(message), false);
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,  // Allow cookies or authorization tokens to be sent
   };

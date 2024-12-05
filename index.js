@@ -50,7 +50,7 @@ const corsOptions = {
   
   app.options('*', cors(corsOptions)); // Handle preflight for all routes
 
-/*app.use(cors({
+app.use(cors({
     origin: (origin, callback) => {
         if (!origin || allowedOrigins.includes(origin)) {
             return callback(null, true);
@@ -58,7 +58,7 @@ const corsOptions = {
         const message = `The CORS policy for this application doesn't allow access from origin ${origin}`;
         return callback(new Error(message), false);
     }
-}));*/
+}));
 
 // Initialize Passport
 //app.use(passport.initialize());

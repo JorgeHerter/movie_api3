@@ -30,6 +30,10 @@ app.use(morgan('dev'));
 // Assuming your static files are in the 'public' folder
 //app.use(express.static(path.join(__dirname, 'public')));
 
+//const path = require('path');
+app.use('/favicon.ico', express.static(path.join(__dirname, 'public', 'favicon.ico')));
+
+
 // CORS configuration
 const allowedOrigins = [
     'http://localhost:3000',

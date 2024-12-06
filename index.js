@@ -16,6 +16,7 @@ const Models = require('./models.js');
 const User = Models.User;  // Change this line
 const Movie = Models.Movie;  // Change this line if you want to be consistent
 
+const path = require('path');
 
 // Initialize Express app
 const app = express();
@@ -26,6 +27,8 @@ app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use(express.static('public'));
+// Assuming your static files are in the 'public' folder
+app.use(express.static(path.join(__dirname, 'public')));
 
 // CORS configuration
 const allowedOrigins = [

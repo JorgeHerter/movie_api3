@@ -26,9 +26,9 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
-app.use(express.static('public'));
+//app.use(express.static('public'));
 // Assuming your static files are in the 'public' folder
-app.use(express.static(path.join(__dirname, 'public')));
+//app.use(express.static(path.join(__dirname, 'public')));
 
 // CORS configuration
 const allowedOrigins = [
@@ -379,7 +379,7 @@ app.get('/movies', (req, res, next) => {
     }
   });
 
-  app.get('/movies/public', async (req, res) => {
+  /*app.get('/movies/public', async (req, res) => {
   try {
     // Only return the title and imagePath fields
     const movies = await Movie.find().select('title imagePath'); 
@@ -391,7 +391,7 @@ app.get('/movies', (req, res, next) => {
     console.error('Error fetching movies:', error);
     res.status(500).send('Error: ' + error.message);
   }
-});
+});*/
 
 app.get('/users/:username/movies', 
     (req, res, next) => {

@@ -383,7 +383,7 @@ app.get('/movies', (req, res, next) => {
     }
   });
 
-  /*app.get('/movies/public', async (req, res) => {
+  app.get('/movies/public', async (req, res) => {
   try {
     // Only return the title and imagePath fields
     const movies = await Movie.find().select('title imagePath'); 
@@ -395,7 +395,7 @@ app.get('/movies', (req, res, next) => {
     console.error('Error fetching movies:', error);
     res.status(500).send('Error: ' + error.message);
   }
-});*/
+});
 
 app.get('/users/:username/movies', 
     (req, res, next) => {
@@ -492,7 +492,7 @@ app.get('/movies/:title',
     }
 );
 
-app.get('/movies/genre/:genreName', 
+app.get('/genre/:genreName', 
     (req, res, next) => {
         console.log('GET /movies/genre/:genreName route hit');
         console.log('Headers:', req.headers);

@@ -492,7 +492,7 @@ app.get('/movies/:title',
     }
 );
 
-app.get('/genre/:genreName', 
+/*app.get('/genre/:genreName', 
     (req, res, next) => {
         console.log('GET /movies/genre/:genreName route hit');
         console.log('Headers:', req.headers);
@@ -536,7 +536,56 @@ app.get('/genre/:genreName',
             return res.status(500).json({ message: 'Server error', error: err.message });
         }
     }
+);*/
+
+app.get('/genre/:genreName', 
+    (req, res, next) => {
+        console.log('GET /movies/genre/:genreName route hit');
+        console.log('Headers:', req.headers);
+
+        // Authenticate the request
+        passport.authenticate('jwt', { session: false }, (err, user, info) => {
+            if (err) {
+                console.error('Authentication error:', err);
+                return next(err);
+            }
+            if (!user) {
+                console.log('Unauthorized access: No user found');
+                return res.status(401).json({ message: 'Unauthorized' });
+            }
+            req.user = user; // Attach user to the request object
+            next(); // Proceed to the next middleware
+        })(req, res, next);
+    },
+    async (req, res) => {
+        const genre = req.params.genreName;
+
+        // Validate input
+        if (!genre || typeof genre !== 'string') {
+            console.log('Invalid genre input:', genre);
+            return res.status(400).json({ message: 'Invalid genre' });
+        }
+
+        try {
+            console.log(`Searching for movies in genre: ${genre}`);
+            
+            // Find movies where the genre matches the provided genre name (case-insensitive)
+            const movies = await Movie.find({ genre: { $regex: new RegExp(genre, 'i') } });
+
+            if (movies && movies.length > 0) {
+                console.log(`Movies found for genre: ${genre}`);
+                return res.status(200).json({ movies });
+            } else {
+                console.log(`No movies found for genre: ${genre}`);
+                return res.status(404).json({ message: 'No movies found for the specified genre' });
+            }
+        } catch (err) {
+            console.error('Error occurred while searching for movies by genre:', err);
+            return res.status(500).json({ message: 'Server error', error: err.message });
+        }
+    }
 );
+
 
 // READ
 

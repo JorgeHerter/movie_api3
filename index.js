@@ -185,7 +185,7 @@ app.post('/users', [
 // A user's info, by username
 //inserted passport
 
-app.put('/users/:Username', passport.authenticate('jwt', { session: false }),  async (req, res) => {
+/*app.put('/users/:Username', passport.authenticate('jwt', { session: false }),  async (req, res) => {
     const requestedUsername = req.params.Username;
     const newUsername = req.body.username;
 
@@ -219,7 +219,49 @@ app.put('/users/:Username', passport.authenticate('jwt', { session: false }),  a
         console.error('Error occurred:', err);
         return res.status(500).send('Error: ' + err.message);
     }
+});*/
+
+app.put('/users/:Username', passport.authenticate('jwt', { session: false }),  async (req, res) => {
+    const requestedUsername = req.params.Username;
+    const newUsername = req.body.username;
+
+    console.log("Requested Username (param):", requestedUsername);  // Log incoming username in params
+    console.log("New Username (body):", newUsername);  // Log new username from the request body
+
+    try {
+        // Check if the new username already exists
+        if (newUsername) {
+            const existingUser = await User.findOne({ username: newUsername });
+            if (existingUser && existingUser.username !== requestedUsername) {
+                return res.status(400).json({ message: 'Username already taken' });
+            }
+        }
+
+        // Proceed with the update if the username is unique or unchanged
+        const updatedUser = await User.findOneAndUpdate(
+            { username: requestedUsername },
+            {
+                username: newUsername || requestedUsername, // Keep the old username if no new one provided
+                password: req.body.password ? User.hashPassword(req.body.password) : undefined, // Hash only if a new password is provided
+                email: req.body.email,
+                dateOfBirth: req.body.dateOfBirth
+            },
+            { new: true, omitUndefined: true } // Omit undefined fields
+        );
+
+        if (!updatedUser) {
+            console.log("User not found for username:", requestedUsername);  // Log if user is not found
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        console.log("Updated User Data:", updatedUser);  // Log the updated user data for debugging
+        res.json(updatedUser);
+    } catch (err) {
+        console.error('Error occurred:', err);
+        return res.status(500).send('Error: ' + err.message);
+    }
 });
+
 
 // UPDATE
 // Add a movie to a user's list of favorites

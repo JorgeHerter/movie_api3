@@ -492,52 +492,6 @@ app.get('/movies/:title',
     }
 );
 
-/*app.get('/genre/:genreName', 
-    (req, res, next) => {
-        console.log('GET /movies/genre/:genreName route hit');
-        console.log('Headers:', req.headers);
-        
-        // Authenticate the request
-        passport.authenticate('jwt', { session: false }, (err, user, info) => {
-            if (err) {
-                console.error('Authentication error:', err);
-                return next(err);
-            }
-            if (!user) {
-                console.log('Unauthorized access: No user found');
-                return res.status(401).json({ message: 'Unauthorized' });
-            }
-            req.user = user; // Attach user to the request object
-            next(); // Proceed to the next middleware
-        })(req, res, next);
-    }, 
-    async (req, res) => {
-        const genre = req.params.genreName;
-
-        // Validate input
-        if (!genre || typeof genre !== 'string') {
-            console.log('Invalid genre input:', genre);
-            return res.status(400).json({ message: 'Invalid genre' });
-        }
-
-        try {
-            console.log(`Searching for movies in genre: ${genre}`);
-            const movies = await Movie.find({ 'genre.name': { $regex: new RegExp(genre, "i") } });
-
-            if (movies && movies.length > 0) {
-                console.log(`Movies found for genre: ${genre}`);
-                return res.status(200).json({ movies });
-            } else {
-                console.log(`No movies found for genre: ${genre}`);
-                return res.status(404).json({ message: 'No movies found for the specified genre' });
-            }
-        } catch (err) {
-            console.error('Error occurred while searching for movies by genre:', err);
-            return res.status(500).json({ message: 'Server error', error: err.message });
-        }
-    }
-);*/
-
 app.get('/genre/:genreName', 
     (req, res, next) => {
         console.log('GET /movies/genre/:genreName route hit');
@@ -589,7 +543,7 @@ app.get('/genre/:genreName',
 
 // READ
 
-app.get('/movies/director/:directorName', 
+/*app.get('/movies/director/:directorName', 
     passport.authenticate('jwt', { session: false }), 
     async (req, res) => {
         console.log('GET /movies/director/:directorName route hit');
@@ -619,7 +573,42 @@ app.get('/movies/director/:directorName',
             return res.status(500).json({ message: 'Server error', error: err.message });
         }
     }
+);*/
+
+app.get('/movies/director/:directorName', 
+    passport.authenticate('jwt', { session: false }), 
+    async (req, res) => {
+        console.log('GET /movies/director/:directorName route hit');
+        console.log('Headers:', req.headers);
+        
+        const director = req.params.directorName.trim(); // Trim whitespace
+
+        // Validate input
+        if (!director || typeof director !== 'string') {
+            console.log('Invalid director input:', director);
+            return res.status(400).json({ message: 'Invalid director' });
+        }
+
+        try {
+            console.log(`Searching for movies directed by: ${director}`);
+            
+            // Directly search for the director as a string (no 'name' field)
+            const movies = await Movie.find({ director: { $regex: new RegExp(director, "i") } });
+
+            if (movies && movies.length > 0) {
+                console.log(`Movies found for director: ${director}`);
+                return res.status(200).json({ movies });
+            } else {
+                console.log(`No movies found for director: ${director}`);
+                return res.status(404).json({ message: 'No movies found for the specified director' });
+            }
+        } catch (err) {
+            console.error('Error occurred while searching for movies by director:', err);
+            return res.status(500).json({ message: 'Server error', error: err.message });
+        }
+    }
 );
+
 
 
 //READ

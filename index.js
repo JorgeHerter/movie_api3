@@ -221,7 +221,7 @@ app.post('/users', [
     }
 });*/
 
-app.put('/users/:Username', passport.authenticate('jwt', { session: false }),  async (req, res) => {
+app.put('/users/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
     const requestedUsername = req.params.Username;
     const newUsername = req.body.username;
 
@@ -239,14 +239,15 @@ app.put('/users/:Username', passport.authenticate('jwt', { session: false }),  a
 
         // Proceed with the update if the username is unique or unchanged
         const updatedUser = await User.findOneAndUpdate(
-            { username: requestedUsername },
+            { username: requestedUsername },  // Use the existing username to find the user
             {
-                username: newUsername || requestedUsername, // Keep the old username if no new one provided
-                password: req.body.password ? User.hashPassword(req.body.password) : undefined, // Hash only if a new password is provided
+                // Do not touch the _id field; MongoDB handles it as immutable.
+                username: newUsername || requestedUsername,  // Update only the username if provided, else keep the old username
+                password: req.body.password ? User.hashPassword(req.body.password) : undefined,  // Update password if provided
                 email: req.body.email,
                 dateOfBirth: req.body.dateOfBirth
             },
-            { new: true, omitUndefined: true } // Omit undefined fields
+            { new: true, omitUndefined: true } // Ensure only non-undefined fields are updated
         );
 
         if (!updatedUser) {
@@ -254,13 +255,17 @@ app.put('/users/:Username', passport.authenticate('jwt', { session: false }),  a
             return res.status(404).json({ message: 'User not found' });
         }
 
-        console.log("Updated User Data:", updatedUser);  // Log the updated user data for debugging
+        // Log the updated user object to check if everything is correct
+        console.log("Updated User Data:", updatedUser);  
+
+        // Return the updated user data in the response
         res.json(updatedUser);
     } catch (err) {
         console.error('Error occurred:', err);
         return res.status(500).send('Error: ' + err.message);
     }
 });
+
 
 
 // UPDATE

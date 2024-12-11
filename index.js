@@ -39,7 +39,7 @@ const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:5000',
     'http://localhost:8080',
-   'https://jorgemyflixapp.netlify.app'
+   'https://jorgeflixapp.netlify.app'
 ];
 const corsOptions = {
     origin: (origin, callback) => {
@@ -185,42 +185,6 @@ app.post('/users', [
 // A user's info, by username
 //inserted passport
 
-/*app.put('/users/:Username', passport.authenticate('jwt', { session: false }),  async (req, res) => {
-    const requestedUsername = req.params.Username;
-    const newUsername = req.body.username;
-
-    try {
-        // Check if the new username already exists
-        if (newUsername) {
-            const existingUser = await User.findOne({ username: newUsername });
-            if (existingUser && existingUser.username !== requestedUsername) {
-                return res.status(400).json({ message: 'Username already taken' });
-            }
-        }
-
-        // Proceed with the update if the username is unique or unchanged
-        const updatedUser = await User.findOneAndUpdate(
-            { username: requestedUsername },
-            {
-                username: newUsername || requestedUsername, // Keep the old username if no new one provided
-                password: req.body.password ? User.hashPassword(req.body.password) : undefined, // Hash only if a new password is provided
-                email: req.body.email,
-                dateOfBirth: req.body.dateOfBirth
-            },
-            { new: true, omitUndefined: true } // Omit undefined fields
-        );
-
-        if (!updatedUser) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        res.json(updatedUser);
-    } catch (err) {
-        console.error('Error occurred:', err);
-        return res.status(500).send('Error: ' + err.message);
-    }
-});*/
-
 app.put('/users/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
     const requestedUsername = req.params.Username;
     const newUsername = req.body.username;
@@ -364,22 +328,6 @@ app.delete('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { se
     }
 });
 //was able to delete user by username
-// 
-/*app.delete('/users/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    const username = req.params.Username;
-    try {
-        // Use a case-insensitive regular expression for the username search
-        const user = await User.findOneAndDelete({ 'username': { $regex: new RegExp(username, 'i') } });
-        if (!user) {
-            res.status(404).send(username + ' was not found');
-        } else {
-            res.status(200).send(username + ' was deleted.');
-        }
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Error: ' + err);
-    }
-});*/
 
 app.delete('/users/:Username', passport.authenticate('jwt', { session: false }), async (req, res) => {
     const username = req.params.Username;
@@ -590,38 +538,6 @@ app.get('/genre/:genreName',
 
 // READ
 
-/*app.get('/movies/director/:directorName', 
-    passport.authenticate('jwt', { session: false }), 
-    async (req, res) => {
-        console.log('GET /movies/director/:directorName route hit');
-        console.log('Headers:', req.headers);
-        
-        const director = req.params.directorName.trim(); // Trim whitespace
-
-        // Validate input
-        if (!director || typeof director !== 'string') {
-            console.log('Invalid director input:', director);
-            return res.status(400).json({ message: 'Invalid director' });
-        }
-
-        try {
-            console.log(`Searching for movies directed by: ${director}`);
-            const movies = await Movie.find({ 'director.name': { $regex: new RegExp(director, "i") } });
-
-            if (movies && movies.length > 0) {
-                console.log(`Movies found for director: ${director}`);
-                return res.status(200).json({ movies });
-            } else {
-                console.log(`No movies found for director: ${director}`);
-                return res.status(404).json({ message: 'No movies found for the specified director' });
-            }
-        } catch (err) {
-            console.error('Error occurred while searching for movies by director:', err);
-            return res.status(500).json({ message: 'Server error', error: err.message });
-        }
-    }
-);*/
-
 app.get('/movies/director/:directorName', 
     passport.authenticate('jwt', { session: false }), 
     async (req, res) => {
@@ -655,21 +571,6 @@ app.get('/movies/director/:directorName',
         }
     }
 );
-
-
-
-//READ
-/*app.get('/users', async (req, res) => {
-    console.log(req.body);
-    await User.find()
-        .then((users) => {
-            res.status(201).json(users);
-        })
-        .catch((err) => {
-            console.error(err);
-            res.status(500).send('Error: ' + err);
-        });
-});*/
 
 //READ
 app.get('/users/:Username', 
